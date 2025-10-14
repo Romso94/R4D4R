@@ -12,10 +12,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Go tools (subfinder, httpx, assetfinder, subzy)
-RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest \
- && go install github.com/projectdiscovery/httpx/cmd/httpx@latest \
- && go install github.com/tomnomnom/assetfinder@latest \
- && go install github.com/PentestPad/subzy@latest
+RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@v2.9.0 \
+ && go install github.com/projectdiscovery/httpx/cmd/httpx@v1.7.1\
+ && go install github.com/tomnomnom/assetfinder@v0.1.1 \
+ && go install github.com/PentestPad/subzy@v1.2.0
 
 
 # ----------------------------------------
