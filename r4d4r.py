@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-r4d4r.py — 
+r4d4r.py 
 
 Usage:
     python3 r4d4r.py -t example.com -o results
@@ -51,7 +51,7 @@ BLUE = CSI + "34m"
 # ---------------------------
 def m4in():
     parser = argparse.ArgumentParser(
-        description="R4D4R — pipeline bug bounty with ASCII dashboard"
+        description="R4D4R — pipeline web asset on target domain"
     )
     parser.add_argument("-t", "--target", required=True, help="Target (example.com)")
     parser.add_argument("-o", "--outdir", default="/data/r4d4r_result", help="Output directory")
@@ -289,13 +289,14 @@ def append_msg(messages, s):
 
 async def r4d4r_pipeline(target: str, outdir: Path, timeout: int, messages):
 
-    append_msg(messages, color(f"R4d4r started for {target}", BOLD))
-    outdir = Path(outdir) if outdir is not None else Path("/data/r4d4r_result")
+    append_msg(messages, color(f"R4d4r started for {target}, {outdir}", BOLD))
+
+    outdir = Path(f"/data/{outdir}") 
 
     outdir.mkdir(parents=True, exist_ok=True)
 
     # 1) subfinder + assetfinder in parallel
-    append_msg(messages, f"{color('[', BOLD)}{color('+', BLUE + BOLD)}{color(']', BOLD)} Starting subfinder + assetfinder")
+    append_msg(messages, f"{color('[', BOLD)}{color('+', BLUE + BOLD)}{color(']', BOLD)} Starting Subfinder + Assetfinder")
     subfinder_cmd = ["subfinder", "-d", target, "-all"]
     assetfinder_cmd = ["assetfinder", target, "--subs-only"]
 
@@ -309,13 +310,13 @@ async def r4d4r_pipeline(target: str, outdir: Path, timeout: int, messages):
     domain2.write_text(out2)
     append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} Subfinder done ({len(out1.splitlines())} lines), Assetfinder done ({len(out2.splitlines())} lines)")
     if code1 != 0:
-        append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)} subfinder exit {code1}")
+        append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)} Subfinder exit {code1}")
         if err1:
-            append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)}  subfinder stderr: {err1.splitlines()[0] if err1 else ''}")
+            append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)}  Subfinder stderr: {err1.splitlines()[0] if err1 else ''}")
     if code2 != 0:
-        append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)} assetfinder exit {code2}")
+        append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)} Assetfinder exit {code2}")
         if err2:
-            append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)}  assetfinder stderr: {err2.splitlines()[0] if err2 else ''}")
+            append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)}  Assetfinder stderr: {err2.splitlines()[0] if err2 else ''}")
 
     # 2) combine domains (sort -u)
     append_msg(messages, f"{color('[', BOLD)}{color('+', BLUE + BOLD)}{color(']', BOLD)} Combining domains (sort -u)")
@@ -324,7 +325,7 @@ async def r4d4r_pipeline(target: str, outdir: Path, timeout: int, messages):
     if code == 0:
         domain_all = outdir / "domains.txt"
         domain_all.write_text(out if out.endswith("\n") else out + "\n")
-        append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} domains combined -> {domain_all} ({len(out.splitlines())} entries)")
+        append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} Domains combined -> {domain_all} ({len(out.splitlines())} entries)")
 
         rm_domain12 = ["rm",domain1,domain2]
         await run_process(rm_domain12,timeout=30, use_shell=False)
@@ -334,7 +335,7 @@ async def r4d4r_pipeline(target: str, outdir: Path, timeout: int, messages):
         domain_all.write_text("")  # keep empty
 
     # 3) httpx status + live in parallel (using shell pipelines for simplicity)
-    append_msg(messages, f"{color('[', BOLD)}{color('+', BLUE + BOLD)}{color(']', BOLD)} Running httpx (status + live)...")
+    append_msg(messages, f"{color('[', BOLD)}{color('+', BLUE + BOLD)}{color(']', BOLD)} Running httpx (status + live)")
     status_file = outdir / "status.txt"
     live_file = outdir / "live.txt"
     cmd_status = f"cat {shlex.quote(str(domain_all))} | httpx -sc > {shlex.quote(str(status_file))}"
@@ -343,10 +344,10 @@ async def r4d4r_pipeline(target: str, outdir: Path, timeout: int, messages):
     t1 = asyncio.create_task(run_process(cmd_status, use_shell=True, timeout=timeout))
     t2 = asyncio.create_task(run_process(cmd_live, use_shell=True, timeout=timeout))
     r1, r2 = await asyncio.gather(t1, t2)
-    append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} httpx tasks finished (status: {r1[0]}, live: {r2[0]})")
+    append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} httpx tasks finished (status: Ok, live: Ok")
 
     # 4) subzy
-    append_msg(messages, f"{color('[', BOLD)}{color('+', BLUE + BOLD)}{color(']', BOLD)} Starting subzy (enumeration & takeover checks)...")
+    append_msg(messages, f"{color('[', BOLD)}{color('+', BLUE + BOLD)}{color(']', BOLD)} Starting Subzy (enumeration & takeover checks)")
     subzy_dir = outdir / "Subzy"
     subzy_dir.mkdir(parents=True, exist_ok=True)  # crée le dossier si nécessaire
     subzy_log = subzy_dir / "subzy.txt"
@@ -406,7 +407,7 @@ async def r4d4r_pipeline(target: str, outdir: Path, timeout: int, messages):
         (corsy_output / "corsy.err").write_text(err)
         append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)}  Corsy stderr (preview): {err.splitlines()[0] if err else ''}")
 
-    append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} {color('R4D4R END1NG N0 M0R3 S1GN4L ...',BLUE + BOLD)}")
+    append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} {color('R4D4R ... N0 M0R3 S1GN4L ...',BLUE + BOLD)}")
     return
 
 # ---------------------------
@@ -414,7 +415,10 @@ async def r4d4r_pipeline(target: str, outdir: Path, timeout: int, messages):
 # ---------------------------
 async def main():
     args = m4in()
-    outdir = Path(args.outdir)
+    if args.outdir == "/data/r4d4r_result":
+        outdir = Path("r4d4r_result")
+    else:
+        outdir = Path(args.outdir)
     messages = []
     stop_event = asyncio.Event()
 
@@ -446,4 +450,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nTerminé par l'utilisateur.")
+        print("\nInterrupted by user.")
