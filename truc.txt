@@ -1,0 +1,1 @@
+docker run --rm -it -v "$PWD:/data" r4d4r -t target -o /data/results
