@@ -11,11 +11,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-venv python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Go tools (subfinder, httpx, assetfinder, subzy)
+# Install Go tools (subfinder, httpx, assetfinder, subzy, katana)
 RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@v2.9.0 \
  && go install github.com/projectdiscovery/httpx/cmd/httpx@v1.7.1\
  && go install github.com/tomnomnom/assetfinder@v0.1.1 \
- && go install github.com/PentestPad/subzy@v1.2.0
+ && go install github.com/PentestPad/subzy@v1.2.0 
+
 
 
 # ----------------------------------------
@@ -60,6 +61,6 @@ RUN set -eux; \
     chmod +x /usr/local/bin/blh
 
 # Sanity check
-RUN which subfinder && which assetfinder && which httpx && which subzy && which corsy && which blh
+RUN which subfinder && which assetfinder && which httpx && which subzy && which katana && which corsy && which blh
 
 ENTRYPOINT ["python3", "/app/r4d4r.py"]

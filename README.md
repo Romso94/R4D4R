@@ -155,7 +155,6 @@ results/
 ## Future
 
 - Output files will be parsed and easier to read
-- A module for `nuclei` and `katana` will be added
 
 ## Contributing
 

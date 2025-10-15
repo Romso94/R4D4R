@@ -418,6 +418,8 @@ async def r4d4r_pipeline(target: str, outdir: Path, timeout: int, messages):
         (blh_output / "blh.err").write_text(err2)
         append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)} BLH stderr (preview): {err2.splitlines()[0] if err2 else ''}")
 
+
+    
     
     append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} {color('R4D4R ... N0 M0R3 S1GN4L ...',BLUE + BOLD)}")
     return
