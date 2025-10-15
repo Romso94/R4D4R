@@ -308,7 +308,7 @@ async def r4d4r_pipeline(target: str, outdir: Path, timeout: int, messages):
     domain2 = outdir / "domain2.txt"
     domain1.write_text(out1)
     domain2.write_text(out2)
-    append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} Subfinder done ({len(out1.splitlines())} lines), Assetfinder done ({len(out2.splitlines())} lines)")
+    append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} Subfinder found ({len(out1.splitlines())} lines), Assetfinder found ({len(out2.splitlines())} lines)")
     if code1 != 0:
         append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)} Subfinder exit {code1}")
         if err1:
@@ -344,7 +344,7 @@ async def r4d4r_pipeline(target: str, outdir: Path, timeout: int, messages):
     t1 = asyncio.create_task(run_process(cmd_status, use_shell=True, timeout=timeout))
     t2 = asyncio.create_task(run_process(cmd_live, use_shell=True, timeout=timeout))
     r1, r2 = await asyncio.gather(t1, t2)
-    append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} httpx tasks finished (status: Ok, live: Ok")
+    append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} httpx tasks finished (status: Ok, live: Ok)")
 
     # 4) subzy
     append_msg(messages, f"{color('[', BOLD)}{color('+', BLUE + BOLD)}{color(']', BOLD)} Starting Subzy (enumeration & takeover checks)")
@@ -378,35 +378,47 @@ async def r4d4r_pipeline(target: str, outdir: Path, timeout: int, messages):
     #         pass
 
     # 5) blh (Broken-Link-Hijacker)
-    append_msg(messages, f"{color('[', BOLD)}{color('+', BLUE + BOLD)}{color(']', BOLD)} Running BLH (Broken-Link-Hijacker)...")
 
     blh_output = outdir / "BLH"
-    blh_output.mkdir(parents=True, exist_ok=True)  # crée le dossier si nécessaire
+    blh_output.mkdir(parents=True, exist_ok=True)  
     blh_log = blh_output / "blh.txt"
     blh_exe = shutil.which("blh")
     blh_cmd = [blh_exe or "blh", "-d 1", f"https://{target}"]
-    code, out, err = await run_process(blh_cmd, timeout=300, use_shell=False)
-    if out and out.strip():
-        blh_log.write_text(out)
-        append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} BLH output written -> {blh_output}")
-    if err:
-        (blh_output / "blh.err").write_text(err)
-        append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)} BLH stderr (preview): {err.splitlines()[0] if err else ''}")
-
+    
+    
     # 6) corsy (CORS)
-    append_msg(messages, f"{color('[', BOLD)}{color('+', BLUE + BOLD)}{color(']', BOLD)} Running Corsy (CORS checks)...")
+    
     corsy_output = outdir / "Corsy"
-    corsy_output.mkdir(parents=True, exist_ok=True)  # crée le dossier si nécessaire
+    corsy_output.mkdir(parents=True, exist_ok=True) 
     corsy_log = corsy_output / "corsy.txt"
     corsy_cmd = ["corsy", "-i", str(live_file)]
-    code, out, err = await run_process(corsy_cmd, timeout=300, use_shell=False)
-    if out and out.strip():
-        corsy_log.write_text(out)
-        append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} Corsy output -> {corsy_output}")
-    if err:
-        (corsy_output / "corsy.err").write_text(err)
-        append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)}  Corsy stderr (preview): {err.splitlines()[0] if err else ''}")
 
+    append_msg(messages, f"{color('[', BOLD)}{color('+', BLUE + BOLD)}{color(']', BOLD)} Running Corsy (CORS checks)")
+    append_msg(messages, f"{color('[', BOLD)}{color('+', BLUE + BOLD)}{color(']', BOLD)} Running BLH (Broken-Link-Hijacker)")
+    
+    t_corsy = asyncio.create_task(run_process(corsy_cmd, timeout=300))
+    t_blh   = asyncio.create_task(run_process(blh_cmd, timeout=300))
+
+
+    (code1, out1, err1), (code2, out2, err2) = await asyncio.gather(t_corsy,t_blh)
+
+    
+
+    if out1 and out1.strip():
+        corsy_log.write_text(out1)
+        append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} Corsy output -> {corsy_output}")
+    if err1:
+        (corsy_output / "corsy.err").write_text(err1)
+        append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)}  Corsy stderr (preview): {err1.splitlines()[0] if err1 else ''}")
+
+    if out2 and out2.strip():
+        blh_log.write_text(out2)
+        append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} BLH output written -> {blh_output}")
+    if err2:
+        (blh_output / "blh.err").write_text(err2)
+        append_msg(messages,  f"{color('[', BOLD)}{color('WARN', RED + BOLD)}{color(']', BOLD)} BLH stderr (preview): {err2.splitlines()[0] if err2 else ''}")
+
+    
     append_msg(messages, f"{color('[', BOLD)}{color('DONE', GREEN + BOLD)}{color(']', BOLD)} {color('R4D4R ... N0 M0R3 S1GN4L ...',BLUE + BOLD)}")
     return
 

@@ -6,7 +6,7 @@
 
 **R4D4R** is a modular reconnaissance pipeline designed for bug bounty hunters and security researchers. It automates subdomain enumeration, vulnerability detection, and live asset analysis using a combination of Go and Python tools.
 
-![Radar ASCII](docs/radar_example.png)
+![Radar ASCII](img/demo.gif)
 
 ---
 
@@ -31,7 +31,6 @@
 * Vulnerable subdomain detection with `subzy`
 * Broken link detection using `BLH (Broken-Link-Hijacker)`
 * CORS issues checking with `Corsy`
-* Real-time ASCII dashboard with radar and progress messages
 * Logs and results stored in a structured output directory
 
 ---
@@ -41,7 +40,7 @@
 ### Prerequisites
 
 - Docker installed and running
-- Python 3.11+ with pip (if running tools outside Docker)
+- Python 3.11+ 
 - Internet access for tool updates and domain resolution
 
 ### Installation Steps
