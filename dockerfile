@@ -61,6 +61,6 @@ RUN set -eux; \
     chmod +x /usr/local/bin/blh
 
 # Sanity check
-RUN which subfinder && which assetfinder && which httpx && which subzy && which katana && which corsy && which blh
+RUN which subfinder && which assetfinder && which httpx && which subzy && which corsy && which blh
 
 ENTRYPOINT ["python3", "/app/r4d4r.py"]
